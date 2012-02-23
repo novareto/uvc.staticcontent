@@ -12,14 +12,18 @@ from zope.app.homefolder.interfaces import IHomeFolder
 from zope.interface import Interface
 from zope.traversing.browser import absoluteURL
 from zope.app.security.interfaces import IUnauthenticatedPrincipal
+from zope.component import getMultiAdapter
+from megrok.pagetemplate import PageTemplate
+from zope.pagetemplate.interfaces import IPageTemplate
 
 
 grok.templatedir('templates')
 
 
-class PersonalPanelView(uvcsite.Page):
+class PersonalPanel(uvcsite.Page):
     """Page for Personal Properties
     """
+    grok.name('personalpanelview')
     grok.order(35)
     grok.require('zope.View')
     grok.context(uvcsite.IMyHomeFolder)
@@ -28,6 +32,15 @@ class PersonalPanelView(uvcsite.Page):
     title = (u"Meine Einstellungen")
     description = (u"Hier werden Einstellungen zu"
                      " Ihrem Benutzerprofil vorgenommen.")
+
+    
+    def render(self):
+        template = getMultiAdapter((self, self.request), IPageTemplate)
+        return template()
+
+
+class PersonalPanelTemplate(PageTemplate):
+    grok.view(PersonalPanel)
 
 
 class PersonalPanelEntry(uvcsite.MenuItem):
