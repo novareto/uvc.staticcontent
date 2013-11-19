@@ -5,13 +5,12 @@
 import grok
 import uvcsite
 
+from uvcsite.utils.shorties import getHomeFolderUrl
 from uvcsite import PersonalPreferences, GlobalMenu, PersonalMenu
-
-from zope.app.homefolder.interfaces import IHomeFolder
-
+from uvc.homefolder.interfaces import IHomefolder
 from zope.interface import Interface
 from zope.traversing.browser import absoluteURL
-from zope.app.security.interfaces import IUnauthenticatedPrincipal
+from zope.authentication.interfaces import IUnauthenticatedPrincipal
 from zope.component import getMultiAdapter
 from megrok.pagetemplate import PageTemplate
 from zope.pagetemplate.interfaces import IPageTemplate
@@ -26,7 +25,7 @@ class PersonalPanel(uvcsite.Page):
     grok.name('personalpanelview')
     grok.order(35)
     grok.require('zope.View')
-    grok.context(uvcsite.IMyHomeFolder)
+    grok.context(IHomefolder)
 
     grok.title(u"Meine Einstellungen")
     title = (u"Meine Einstellungen")
@@ -53,7 +52,7 @@ class PersonalPanelEntry(uvcsite.MenuItem):
     
     @property
     def action(self):
-        return uvcsite.IGetHomeFolderUrl(self.request).getURL() + 'personalpanelview'
+        return str(getHomeFolderUrl(self.request)) + 'personalpanelview'
 
 
 class UserName(uvcsite.MenuItem):
@@ -81,8 +80,8 @@ class MeinOrdner(uvcsite.MenuItem):
         principal = self.request.principal
         if IUnauthenticatedPrincipal.providedBy(principal):
             return
-        homeFolder = IHomeFolder(principal).homeFolder
-        return absoluteURL(homeFolder, self.request)
+        homeFolder = IHomefolder(principal, None)
+        return homeFolder and absoluteURL(homeFolder, self.request) or ''
 
     @property
     def action(self):
@@ -90,7 +89,7 @@ class MeinOrdner(uvcsite.MenuItem):
 
 
 class Mitbenutzerverwaltung(uvcsite.MenuItem):
-    grok.context(uvcsite.IMyHomeFolder)
+    grok.context(IHomefolder)
     grok.name('Mitbenutzerverwaltung')
     grok.title('Mitbenutzerverwaltung')
     grok.viewletmanager(uvcsite.IPersonalMenu)
@@ -102,8 +101,8 @@ class Mitbenutzerverwaltung(uvcsite.MenuItem):
         principal = self.request.principal
         if IUnauthenticatedPrincipal.providedBy(principal):
             return
-        homeFolder = IHomeFolder(principal).homeFolder
-        return absoluteURL(homeFolder, self.request) + '/enms'
+        homeFolder = IHomefolder(principal)
+        return str(absoluteURL(homeFolder, self.request)) + '/enms'
 
     @property
     def action(self):
