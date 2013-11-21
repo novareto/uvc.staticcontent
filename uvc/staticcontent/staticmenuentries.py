@@ -4,6 +4,7 @@
 
 import grok
 import uvcsite
+import urllib
 
 from uvcsite.utils.shorties import getHomeFolderUrl
 from uvcsite import PersonalPreferences, GlobalMenu, PersonalMenu
@@ -52,7 +53,12 @@ class PersonalPanelEntry(uvcsite.MenuItem):
     
     @property
     def action(self):
-        return str(getHomeFolderUrl(self.request)) + 'personalpanelview'
+        principal = self.request.principal
+        if IUnauthenticatedPrincipal.providedBy(principal):
+            return
+        hf = IHomefolder(principal)
+        viewname = 'personalpanelview'
+        return urllib.unquote(grok.util.url(self.request, hf, viewname))
 
 
 class UserName(uvcsite.MenuItem):
@@ -80,8 +86,8 @@ class MeinOrdner(uvcsite.MenuItem):
         principal = self.request.principal
         if IUnauthenticatedPrincipal.providedBy(principal):
             return
-        homeFolder = IHomefolder(principal, None)
-        return homeFolder and absoluteURL(homeFolder, self.request) or ''
+        hf = IHomefolder(principal, None)
+        return urllib.unquote(grok.util.url(self.request, hf))
 
     @property
     def action(self):
