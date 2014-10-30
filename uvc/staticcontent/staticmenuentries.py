@@ -2,109 +2,100 @@
 # Copyright (c) 2007-2010 NovaReto GmbH
 # cklinger@novareto.de 
 
-import grok
-import uvcsite
-
-from uvcsite import PersonalPreferences, GlobalMenu, PersonalMenu
-
-from zope.app.homefolder.interfaces import IHomeFolder
-
-from zope.interface import Interface
-from zope.traversing.browser import absoluteURL
-from zope.app.security.interfaces import IUnauthenticatedPrincipal
+import uvclight
+from cromlech.browser import ITemplate, IURL
+from cromlech.security.interfaces import IUnauthenticatedPrincipal
+from uvc.homefolder.components import HomefolderURL
+from uvc.homefolder.interfaces import IHomefolder
+from uvc.design.canvas import IPersonalPreferences, IGlobalMenu, IPersonalMenu
 from zope.component import getMultiAdapter
-from megrok.pagetemplate import PageTemplate
-from zope.pagetemplate.interfaces import IPageTemplate
+from zope.interface import Interface
 
 
-grok.templatedir('templates')
-
-
-class PersonalPanel(uvcsite.Page):
+class PersonalPanel(uvclight.Page):
     """Page for Personal Properties
     """
-    grok.name('personalpanelview')
-    grok.order(35)
-    grok.require('zope.View')
-    grok.context(uvcsite.IMyHomeFolder)
+    uvclight.auth.require('zope.View')
+    uvclight.context(IHomefolder)
+    uvclight.name('personalpanelview')
+    uvclight.order(35)
+    uvclight.title(u"Meine Einstellungen")
 
-    grok.title(u"Meine Einstellungen")
     title = (u"Meine Einstellungen")
     description = (u"Hier werden Einstellungen zu"
                      " Ihrem Benutzerprofil vorgenommen.")
 
-    
     def render(self):
-        template = getMultiAdapter((self, self.request), IPageTemplate)
+        template = getMultiAdapter((self, self.request), ITemplate)
         return template()
 
 
-class PersonalPanelTemplate(PageTemplate):
-    grok.view(PersonalPanel)
+@uvclight.adapter(PersonalPanel, Interface)
+@uvclight.implementer(ITemplate)
+def personalpanel_menu(context, request):
+    return uvclight.get_template('personalpaneltemplate.pt', __file__)
 
 
-class PersonalPanelEntry(uvcsite.MenuItem):
-    grok.require('zope.View')
-    grok.order(35)
+class PersonalPanelEntry(uvclight.MenuItem):
+    uvclight.auth.require('zope.View')
+    uvclight.order(35)
+    uvclight.title(u"Meine Einstellungen")
+    uvclight.menu(IPersonalPreferences)
 
-    grok.title(u"Meine Einstellungen")
     title = (u"Meine Einstellungen")
-    grok.viewletmanager(uvcsite.IPersonalPreferences)
-    
+
     @property
     def action(self):
-        return uvcsite.IGetHomeFolderUrl(self.request).getURL() + 'personalpanelview'
+        url = str(getMultiAdapter(
+            (self.request.principal, self.request), IURL, name="homefolder"))
+        return url + 'personalpanelview'
 
 
-class UserName(uvcsite.MenuItem):
-    grok.title("USERSNAME")
-    grok.context(Interface)
-    grok.viewletmanager(uvcsite.IPersonalPreferences)
-    grok.order(10)
-    grok.require('zope.View')
+class UserName(uvclight.MenuItem):
+    uvclight.auth.require('zope.View')
+    uvclight.context(Interface)
+    uvclight.order(10)
+    uvclight.title("USERSNAME")
+    uvclight.menu(IPersonalPreferences)
 
     @property
     def title(self):
         return self.request.principal.title
 
 
-class MeinOrdner(uvcsite.MenuItem):
-    grok.context(Interface)
-    grok.name('Mein Ordner')
-    grok.title('Mein Ordner')
-    grok.viewletmanager(uvcsite.IPersonalPreferences)
-    grok.order(20)
-    grok.require('zope.View')
+class MeinOrdner(uvclight.MenuItem):
+    uvclight.auth.require('zope.View')
+    uvclight.context(Interface)
+    uvclight.name('Mein Ordner')
+    uvclight.order(20)
+    uvclight.title('Mein Ordner')
+    uvclight.menu(IPersonalPreferences)
 
     @property
     def hfurl(self):
-        principal = self.request.principal
-        if IUnauthenticatedPrincipal.providedBy(principal):
-            return
-        homeFolder = IHomeFolder(principal).homeFolder
-        return absoluteURL(homeFolder, self.request)
+        url = str(getMultiAdapter(
+            (self.request.principal, self.request), IURL, name="homefolder"))
+        return url
 
     @property
     def action(self):
         return self.hfurl
 
 
-class Mitbenutzerverwaltung(uvcsite.MenuItem):
-    grok.context(uvcsite.IMyHomeFolder)
-    grok.name('Mitbenutzerverwaltung')
-    grok.title('Mitbenutzerverwaltung')
-    grok.viewletmanager(uvcsite.IPersonalMenu)
-    grok.order(30)
-    grok.require('uvc.ManageCoUsers')
+class Mitbenutzerverwaltung(uvclight.MenuItem):
+    uvclight.context(IHomefolder)
+    uvclight.name('Mitbenutzerverwaltung')
+    uvclight.title('Mitbenutzerverwaltung')
+    uvclight.menu(IPersonalMenu)
+    uvclight.order(30)
+    uvclight.auth.require('uvc.ManageCoUsers')
 
     @property
     def url(self):
-        principal = self.request.principal
-        if IUnauthenticatedPrincipal.providedBy(principal):
-            return
-        homeFolder = IHomeFolder(principal).homeFolder
-        return absoluteURL(homeFolder, self.request) + '/enms'
-
+        url = str(getMultiAdapter(
+            (self.request.principal, self.request), IURL, name="homefolder"))
+        return url + '/enms'
+ 
     @property
     def action(self):
         return self.url
