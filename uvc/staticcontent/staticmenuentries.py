@@ -8,7 +8,7 @@ import urllib
 
 from uvcsite.utils.shorties import getHomeFolderUrl
 from uvcsite import PersonalPreferences, GlobalMenu, PersonalMenu
-from uvc.homefolder.interfaces import IHomefolder
+from uvcsite.homefolder.interfaces import IHomefolder
 from zope.interface import Interface
 from zope.traversing.browser import absoluteURL
 from zope.authentication.interfaces import IUnauthenticatedPrincipal
