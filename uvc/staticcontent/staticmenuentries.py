@@ -8,7 +8,7 @@ import urllib
 
 from uvcsite.utils.shorties import getHomeFolderUrl
 from uvcsite import PersonalPreferences, GlobalMenu, PersonalMenu
-from uvcsite.homefolder.interfaces import IHomefolder
+from uvcsite.homefolder.interfaces import IHomeFolder
 from zope.interface import Interface
 from zope.traversing.browser import absoluteURL
 from zope.authentication.interfaces import IUnauthenticatedPrincipal
@@ -26,7 +26,7 @@ class PersonalPanel(uvcsite.Page):
     grok.name('personalpanelview')
     grok.order(35)
     grok.require('zope.View')
-    grok.context(IHomefolder)
+    grok.context(IHomeFolder)
 
     grok.title(u"Meine Einstellungen")
     title = (u"Meine Einstellungen")
@@ -56,7 +56,7 @@ class PersonalPanelEntry(uvcsite.MenuItem):
         principal = self.request.principal
         if IUnauthenticatedPrincipal.providedBy(principal):
             return
-        hf = IHomefolder(principal)
+        hf = IHomeFolder(principal).homeFolder
         viewname = 'personalpanelview'
         return urllib.unquote(grok.util.url(self.request, hf, viewname))
 
@@ -86,7 +86,7 @@ class MeinOrdner(uvcsite.MenuItem):
         principal = self.request.principal
         if IUnauthenticatedPrincipal.providedBy(principal):
             return
-        hf = IHomefolder(principal, None)
+        hf = IHomeFolder(principal).homeFolder
         return urllib.unquote(grok.util.url(self.request, hf))
 
     @property
@@ -95,7 +95,7 @@ class MeinOrdner(uvcsite.MenuItem):
 
 
 class Mitbenutzerverwaltung(uvcsite.MenuItem):
-    grok.context(IHomefolder)
+    grok.context(IHomeFolder)
     grok.name('Mitbenutzerverwaltung')
     grok.title('Mitbenutzerverwaltung')
     grok.viewletmanager(uvcsite.IPersonalMenu)
@@ -107,7 +107,7 @@ class Mitbenutzerverwaltung(uvcsite.MenuItem):
         principal = self.request.principal
         if IUnauthenticatedPrincipal.providedBy(principal):
             return
-        homeFolder = IHomefolder(principal)
+        homeFolder = IHomeFolder(principal).homeFolder
         return str(absoluteURL(homeFolder, self.request)) + '/enms'
 
     @property
