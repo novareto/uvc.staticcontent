@@ -73,7 +73,7 @@ class UserName(uvcsite.browser.MenuItem):
         return self.request.principal.title
 
 
-class MeinOrdner(uvcsite.browser.MenuItem):
+class MeinOrdner(uvcsite.browser.layout.menu.MenuItem):
     grok.context(Interface)
     grok.name("Mein Ordner")
     grok.title("Mein Ordner")
