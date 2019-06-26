@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2007-2010 NovaReto GmbH
-# cklinger@novareto.de
-
 import grok
 import uvcsite
 import urllib
+import uvcsite.browser.layout.menu
+import uvcsite.browser.layout.slots.interfaces
 
+from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from uvcsite.interfaces import IHomeFolder
 from zope.interface import Interface
 from zope.traversing.browser import absoluteURL
@@ -41,26 +40,20 @@ class PersonalPanelTemplate(PageTemplate):
     grok.view(PersonalPanel)
 
 
-class PersonalPanelEntry(uvcsite.browser.MenuItem):
-    grok.require("zope.View")
-    grok.context(Interface)
-    grok.order(35)
+class PersonalPanelEntry(uvcsite.browser.layout.menu.MenuItem):
+    grok.adapts(Interface, IDefaultBrowserLayer, Interface,
+                uvcsite.browser.layout.slots.interfaces.IPersonalPreferences)
 
-    grok.title(u"Meine Einstellungen")
-    title = u"Meine Einstellungen"
-    grok.viewletmanager(uvcsite.browser.layout.slots.interfaces.IPersonalPreferences)
-
-    @property
-    def action(self):
+    def url(self):
         principal = self.request.principal
         if IUnauthenticatedPrincipal.providedBy(principal):
             return
-        hf = IHomeFolder(principal)
+        hf = IHomeFolder(principal, None)
         viewname = "personalpanelview"
         return urllib.parse.unquote(grok.util.url(self.request, hf, viewname))
 
 
-class UserName(uvcsite.browser.MenuItem):
+class UserName:
     grok.title("USERSNAME")
     grok.context(Interface)
     grok.viewletmanager(uvcsite.browser.layout.slots.interfaces.IPersonalPreferences)
@@ -73,14 +66,7 @@ class UserName(uvcsite.browser.MenuItem):
         return self.request.principal.title
 
 
-class MeinOrdner(uvcsite.browser.layout.menu.MenuItem):
-    grok.context(Interface)
-    grok.name("Mein Ordner")
-    grok.title("Mein Ordner")
-    grok.viewletmanager(uvcsite.browser.layout.slots.interfaces.IPersonalPreferences)
-    grok.order(20)
-    grok.require("zope.View")
-    title = u"Mein Ordner"
+class MeinOrdner:
 
     @property
     def hfurl(self):
@@ -95,13 +81,7 @@ class MeinOrdner(uvcsite.browser.layout.menu.MenuItem):
         return self.hfurl
 
 
-class Mitbenutzerverwaltung(uvcsite.browser.MenuItem):
-    grok.context(IHomeFolder)
-    grok.name("Mitbenutzerverwaltung")
-    grok.viewletmanager(uvcsite.browser.layout.slots.interfaces.IPersonalMenu)
-    grok.order(30)
-    grok.require("uvc.ManageCoUsers")
-    title = u"Mitbenutzerverwaltung"
+class Mitbenutzerverwaltung:
 
     @property
     def url(self):
