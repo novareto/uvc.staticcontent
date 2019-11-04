@@ -1,7 +1,7 @@
 import grok
 import uvcsite
 import urllib
-import uvcsite.browser.layout.menu
+import uvc.menus.components
 import uvcsite.browser.layout.slots.interfaces
 
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
@@ -40,7 +40,7 @@ class PersonalPanelTemplate(PageTemplate):
     grok.view(PersonalPanel)
 
 
-class PersonalPanelEntry(uvcsite.browser.layout.menu.MenuItem):
+class PersonalPanelEntry(uvc.menus.components.MenuItem):
     grok.adapts(Interface, IDefaultBrowserLayer, Interface,
                 uvcsite.browser.layout.slots.interfaces.IPersonalPreferences)
 
